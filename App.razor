@@ -1,0 +1,58 @@
+﻿<div style="max-width: 600px; margin: 24px auto;">
+
+    <IgbGrid Data="_data" PrimaryKey="@nameof(Person.Id)" AutoGenerate="false" DisplayDensity="DisplayDensity.Compact">
+
+        <IgbColumn Field="@nameof(Person.Id)"></IgbColumn>
+
+        <IgbColumn Field="@nameof(Person.Name)">
+            <BodyTemplate>
+                <span @key="context.Cell.Id.RowID">
+                    <img src="@GetIconUrl(context)" />
+                    <span>@context.Cell.Value</span>
+                </span>
+            </BodyTemplate>
+        </IgbColumn>
+
+        <IgbColumn Field="@nameof(Person.Age)"></IgbColumn>
+    </IgbGrid>
+
+</div>
+
+@code {
+    private enum Country { India, Japan, UnitedStates };
+
+    private record Person(int Id, string Name, int Age, Country Country);
+
+    private List<Person> _data = new List<Person>
+    {
+        new Person(1, "Ravi", 32, Country.India),
+        new Person(2, "Hanako", 25, Country.Japan),
+        new Person(3, "John", 41, Country.UnitedStates)
+    };
+
+    private string GetIconUrl(IgbCellTemplateContext context)
+    {
+        // context.Parent に、このセルを持つ IgbGrid への参照がある
+        var grid = context.Parent as IgbGrid;
+
+        // IgbGrid の Data を見れば、バインドされているデータ全体を参照できる
+        var rows = grid?.Data as List<Person>;
+
+        // context.Cell.Id.RowID に PrimaryKey に指定された名前のプロパティ値がある
+        var rowId = int.Parse(context.Cell.Id.RowID);
+
+        // 以上を元にバインド元データを探索すればこのセルの元データ行を取得できる
+        var row = rows?.First(r => r.Id == rowId);
+
+        // 行データがわかれば、他のプロパティ (列) の値も参照可能
+        var iconUrl = row?.Country switch
+        {
+            Country.India => "./img/in.png",
+            Country.Japan => "./img/jp.png",
+            Country.UnitedStates => "./img/us.png",
+            _ => "./img/no-image.png"
+        };
+
+        return iconUrl;
+    }
+}
